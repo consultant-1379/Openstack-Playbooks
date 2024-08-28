@@ -1,0 +1,31 @@
+heat_template_version: 2015-04-30
+description: ENM Network Internal Stack
+
+parameters:
+  enm_internal_network_name:
+    type: string
+
+  internal_subnet:
+    type: string
+
+  dynamic_ip_range_start:
+    type: string
+
+  dynamic_ip_range_end:
+    type: string
+
+resources:
+  enm_internal_network:
+    type: OS::Neutron::Net
+    properties:
+      name: {get_param: enm_internal_network_name}
+
+  enm_internal_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      allocation_pools:
+      - start: {get_param: dynamic_ip_range_start}
+        end: {get_param: dynamic_ip_range_end}
+      network_id: {get_resource: enm_internal_network}
+      cidr: {get_param: internal_subnet}
+      gateway_ip: ""

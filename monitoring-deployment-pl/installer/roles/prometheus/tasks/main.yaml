@@ -1,0 +1,55 @@
+---
+#
+# Tasks to be applied to production host to setup pre-requisites and setup prometheus
+# container
+
+
+# Add tasks for a specific role to this playbook...
+- name: Create volume directory for Prometheus data
+  file:
+    path: "{{ monitoring_dir }}/prometheus-data"
+    state: directory
+    mode: "0777"
+
+- name: Validate dir path
+  stat:
+    path: "{{ monitoring_dir }}/prometheus-data"
+  register: prometheus_dir
+
+- name: Validate config file path
+  stat:
+    path: "{{ monitoring_dir }}/config/prometheus/prometheus.yml"
+  register: config_file
+
+- name: Create and run Prometheus container
+  docker_container:
+    name: prometheus-server
+    image: prom/prometheus
+    state: started
+    restart_policy: "always"
+    ports:
+     - "{{ prometheus_port }}:9090"
+    volumes:
+     - "{{ monitoring_dir }}/prometheus-data:/prometheus"
+     - "{{ monitoring_dir }}/config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+  when: prometheus_dir.stat.exists and config_file.stat.exists
+
+
+- name: Create and run Prometheus Pushgateway container
+  docker_container:
+    name: prom_pushgateway
+    image: prom/pushgateway
+    state: started
+    restart_policy: "always"
+    ports:
+     - "{{ push_gateway_port }}:9091"
+
+- name: Create and run Prometheus Alertmanager container
+  docker_container:
+    name: prom_alertmanager
+    image: prom/alertmanager
+    state: started
+    restart_policy: "always"
+    ports:
+     - "{{ alert_manager_port }}:9093"
+

@@ -1,0 +1,27 @@
+---
+
+- name: Setting Variable from LAF SEDocument
+  include_vars:
+    file: "{{ sedfilelocation.laf }}"
+    name: lafsed
+
+- name: Pre install sedfile checking
+  include_tasks: pre_install_variables_check.yml
+
+- name: Bootstrap Operating System PreReq
+  include_tasks: pre_operating_system_bootstrap.yml
+
+- name: Bootstrap Openstack Project and User
+  include_tasks: pre_openstack_project_bootstrap.yml
+
+- name: Openstack VNF Resouce and Stack creation
+  include_tasks: pre_openstack_resources_creation.yml 
+
+- name: Populate and store Keystone Credentials
+  include_tasks: pre_populate_sed_rc.yml
+
+- name: Deploy VNF LAF Stack
+  include_tasks: deploy_openstack_vnflaf_stack.yml
+
+- name: Doing Post install steps for VNF LAF
+  include_tasks: post_vnflaf_bootstrap.yml

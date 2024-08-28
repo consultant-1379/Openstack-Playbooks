@@ -1,0 +1,31 @@
+heat_template_version: 2015-04-30
+
+description: >
+  VNF-LCM Heat Template to create ServerGroup.
+
+parameters:
+    services_vm_count:
+        type: string
+        default: 1
+        description: Number services VMs in VNF-LCM cluster.
+        constraints:
+         - allowed_values: [ 1, 2 ]
+
+    availability_rule:
+        type: string
+        default: affinity
+        description: Availability rule for DB and Services VM
+        constraints:
+         - allowed_values: [ anti-affinity, affinity ]
+
+resources:
+    vnflaf-server-group:
+        type: OS::Heat::ResourceGroup
+        properties:
+            count: { get_param: services_vm_count}
+            resource_def:
+                type: OS::Nova::ServerGroup
+                properties:
+                    name: {list_join: ['-', [ {get_param: 'OS::stack_name'},'%index%']]}
+                    policies:
+                        - {get_param: availability_rule}

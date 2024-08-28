@@ -1,0 +1,36 @@
+quota:
+  cores: 553
+  fixed_ips: -1
+  instances: 222
+  key_pairs: 5
+  networks: 3
+  port: 320
+  ram: 1511629
+  secgroup_rules: 275
+  secgroups: 10
+  subnets: 3
+  volumes: 121
+  gigabytes: 9841
+  backups: 105
+  backup_gigabytes: 6168
+  snapshots: 50
+  server_groups: 150
+
+heatStacks:
+  security_group: "/home/centos/guruvnftest/vnflcm-security-group.yaml" #put absolute path for security group
+  internal_network: "/home/centos/guruvnftest/network_internal_stack.yaml"
+  server_group: "/home/centos/guruvnftest/vnflcm-server-group.yaml"
+  vnf_laf_server: "/home/centos/guruvnftest/vnflcm-heat-template-static-cinder-ipv4.yaml"
+  network_security_group: "/tmp/ENM-19.15/opt/ericsson/ERICenmcloudtemplates_CXP9033639/infrastructure_resources/network_security_group_stack.yaml"
+  vnf_laf_vip: "/path/to/vip/hot/template.yaml"
+sedfilelocation:
+  enm: "/home/centos/guruvnftest/ENM_SiteEngineering_Frankfurt_frstaging02_19.09.json"
+  laf: "/home/centos/guruvnftest/LAF_SiteEngineering_Frankfurt_frstagingenm02.json"
+
+remotePathForRPM: "/tmp" #path where the files will be copied
+localPathForRPM: "/home/centos/guruvnftest" #path from where the files will be copied
+workflowsInstallDefinition: "enmdeploymentworkflows.--.1.88.7.--.deploystack__top"
+workflowRPMList: #list of files which needed to copy
+  - "ERICenmcloudmgmtworkflows_CXP9036442-1.10.1.rpm"
+  - "ERICenmcloudperformanceworkflows_CXP9037118-1.6.1.rpm"
+  - "ERICenmdeploymentworkflows_CXP9034151-1.88.7.rpm" 

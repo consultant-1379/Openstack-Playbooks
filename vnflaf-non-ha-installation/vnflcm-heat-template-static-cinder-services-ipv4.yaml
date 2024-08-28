@@ -1,0 +1,778 @@
+heat_template_version: 2015-04-30
+
+description: >
+  HOT template 5.11.3 to deploy VNFLAF Stack in Openstack cloud. i.e. with 2 VMs one hosting the services and another hosting the database.
+
+parameters:
+    vnflcm_stack_name:
+        type: string
+        default:
+        description: Name of VNF-LCM stack.
+
+    vnflcm_stack_id:
+        type: string
+        default:
+        description: ID of VNF-LCM stack.
+
+    DB_vm_HostName:
+        type: string
+        description: Assign a custom hostname for VNFLCM-db VM
+        constraints:
+         - length: { min: 8 }
+           description: DB_vm_HostName length must be minimum 8
+         - allowed_pattern: "[a-zA-Z]+[a-zA-Z0-9-.]*"
+           description: DB_vm_HostName must start with character and follows with charecters or numbers or symbols . -
+
+    servicesImage:
+        type: string
+        default: 
+        description: Name of vnflaf-services VM image uploaded ERICrhelvnflafimage_CXP9032490-4.1.11 to Openstack dashboard.
+
+    Services_vm_HostName:
+        type: string
+        description: Assign a custom hostname for VNFLCM-Services VM
+        constraints:
+         - length: { min: 8 }
+           description: Services_vm_HostName length must be minimum 8
+         - allowed_pattern: "[a-zA-Z]+[a-zA-Z0-9-.]*"
+           description: Services_vm_HostName must start with character and follows with charecters or numbers or symbol . -
+
+    services_flavor:
+        type: string
+        description: Flavor to use for vnflaf-services VM. 2vcpu_4096MBmem_40GBdisk
+
+    keypair:
+        type: string
+        description: Keypair name to use for vnflaf-services and vnflaf-db VM.
+
+    time_zone:
+        type: string
+        description: Time zone to be set on VNFLCM VMs.
+
+    deployment_id:
+        type: string
+        default: 
+        description: Unique string to identify deployment. Must be 17 characters or less in length and only contain numbers, letters, and dashes. Must not be in integer.
+
+    services_vm_count:
+        type: string
+        description: Number services VM to be created.
+        default: 1
+
+    db_vm_count:
+        type: string
+        description: Number db VM to be created.
+        default: 1
+
+    storageType:
+        type: string
+        description: External storage type to be used for Backup&Restore.
+        constraints:
+         - allowed_values: [ CINDER ]
+
+    ip_version:
+        type: string
+        description: IP Version of external subnet.
+
+    security_group_id:
+        type: string
+        description: VNF-LCM security group id created as part of preinstall.
+
+    external_net_id:
+        type: string
+        description: Id of Pre created external network. ID can be obtained from CEE/Openstack dashborad.
+
+    external_mtu:
+        type: string
+        description: MTU of Pre created external network. MTU can be obtained from CEE/Openstack dashborad.
+
+    external_ipv6_subnet_gateway:
+        type: string
+        description: External network gateway address of IPv6 subnet.
+
+    external_ipv6_subnet_cidr:
+        type: string
+        description: IP address range of IPv6 subnet of external network.
+
+    external_ipv6_for_services_vm:
+        type: comma_delimited_list
+        description: IPv6 address for the vnflaf-services VM.
+
+    external_ipv4_subnet_gateway:
+        type: string
+        description: External network gateway address of IPv4 subnet.
+
+    external_ipv4_subnet_cidr:
+        type: string
+        description: IP address range of IPv4 subnet of external network.
+
+    external_ipv4_for_services_vm:
+        type: comma_delimited_list
+        description: IPv4 address for the vnflaf-services VM.
+
+    external_ipv4_vip_for_services:
+        type: string
+        default: None
+        description: IPv4 address for the vnflaf-services VM HA.
+
+    internal_ipv4_vip_for_services:
+        type: string
+        default: None
+        description: IPv4 address for the vnflaf-services VM.
+
+    external_ipv6_vip_for_services:
+        type: string
+        default: None
+        description: IPv6 address for the vnflaf-services VM HA.
+
+    internal_ipv6_vip_for_services:
+        type: string
+        default: None
+        description: IPv6 address for the vnflaf-services VM HA.
+
+    enable_auto_recovery:
+        type: string
+        default: TRUE
+        description: Enable or disable VNF-LCM HA auto recovery
+        constraints:
+         - allowed_values: [ TRUE, FALSE ]
+
+    internal_net_id:
+        type: string
+        description: Id of Pre created internal network. ID can be obtained from Atlas/Openstack dashborad.
+
+    internal_mtu:
+        type: string
+        description: MTU of Pre created internal network. MTU can be obtained from CEE/Openstack dashborad.
+
+    internal_ipv4_subnet_cidr:
+        type: string
+        default: None
+        description: Any Class-B IPv4 address range of IPv4 subnet for internal network to be created.
+
+    internal_ipv4_subnet_gateway:
+        type: string
+        default: None
+        description: Internal IPv4 subnet gateway address for internal netwrok to be created.
+
+    internal_ipv4_for_db_vm:
+        type: comma_delimited_list
+        default: None
+        description: Internal IPv4 address for the vnflaf-db VM.
+
+    internal_ipv4_for_db_vm:
+        type: comma_delimited_list
+        default: None
+        description: Internal IPv4 address for the vnflaf-db VM.
+
+    internal_ipv4_vip_for_db:
+        type: string
+        default: None
+        description: Internal IPv4 addreses for DB HA. 
+
+    internal_ipv6_vip_for_db:
+        type: string
+        default: None
+        description: Internal IPv4 addreses for DB HA. 
+
+    internal_ipv4_for_services_vm:
+        type: comma_delimited_list
+        default: None
+        description: Internal IPv4 address for the vnflaf-services VM.
+
+    internal_ipv6_subnet_cidr:
+        type: string
+        default: None
+        description: IP address range of Ipv6 subnet for internal network to be created.
+
+    internal_ipv6_subnet_gateway:
+        type: string
+        default: None
+        description: Internal IPv6 subnet gateway address for internal netwrok to be created.
+
+    internal_ipv6_for_db_vm:
+        type: comma_delimited_list
+        default: None
+        description: Internal IPv6 address for the vnflaf-db VM.
+
+    internal_ipv6_for_services_vm:
+        type: comma_delimited_list
+        default: None
+        description: Internal IPv6 address for the vnflaf-services VM.
+
+    svc_external_vrrp_id:
+        type: string
+        description: A unique ID to differentiate multiple instances of vrrpd running on the same NIC
+
+    svc_internal_vrrp_id:
+        type: string
+        description: A unique ID to differentiate multiple instances of vrrpd running on the same NIC
+
+    db_internal_vrrp_id:
+        type: string
+        default:
+        description: A unique ID to differentiate multiple instances of vrrpd running on the same NIC
+
+    availability:
+        type: string
+        description: Availability rule for DB and Services VM
+
+    ha_policy:
+        type: string
+        description: HA policy for VNF-LCM instances.
+
+    ossType:
+        type: string
+        default: None
+        description: Type of OSS. Example - OSSRC
+        constraints:
+         - allowed_values: [ OSSRC, ENM, vENM, none ]
+
+    ossMasterServerHostName:
+        type: string
+        default: None
+        description: OSS Master server hostname for VNF(s) to be connected. Refer parameter table in Installation Guide to find the description. Example - masterservice
+
+    ossMasterHostIP:
+        type: string
+        default: None
+        description: OSS Master server host IP for VNF(s) to be connected. Refer parameter table in Installation Guide to find the description. Example - 131.160.162.195
+
+    ossNotificationServiceIP:
+        type: string
+        default: None
+        description: IP address of the Host where notification service of OSS is running. Refer parameter table in Installation Guide to find the description. Example - 10.140.23.40
+
+    ossNotificationServiceHost:
+        type: string
+        default: None
+        description: Host name of the Host where notification service of OSS is running. Refer parameter table in Installation Guide to find the description. Example - notificationservice
+
+    ossHAproxyHost:
+        type: string
+        default: None
+        description: OSS HAproxy hostname for VNF or NFVO. Refer parameter table in Installation Guide to find the description. Example - ieatENM5424-10.athtem.eei.ericsson.se
+
+    ossUserName:
+        type: string
+        default: vnflaf
+        description: Authorized user of OSS Server for VNF handling. Refer parameter table in Installation Guide to find the description. Example - nmsadm
+
+    ossGatewayHost1:
+        type: string
+        default: None
+        description: OSS GATEWAY HOST1 IP address. Refer parameter table in Installation Guide to find the description. Example - 10.140.23.46
+
+    ossGatewayHost2:
+        type: string
+        default: None
+        description: OSS GATEWAY HOST2 IP address. Refer parameter table in Installation Guide to find the description. Example - 10.140.23.47
+
+    ntp_servers:
+        type: string
+        description: NTP server IPs  to synchronize the time on VNFLCM hosts. Example - 131.160.162.195,131.160.162.196
+
+    dns_server_ip:
+        type: string
+        default: None
+        description: IP address of the DNS server. If more than one DNS server, use comma(,) to separate. Example - 150.130.93.123,150.130.93.125
+
+    clusterIndex:
+        type: string
+        default: 0
+ 
+    vim_type:
+        type: string
+        default: OPENSTACK
+        description: A default VIM to be configured for VNF use cases. Example - ECM/CEE/Openstack/VCD
+        constraints:
+         - allowed_values: [ OPENSTACK, CEE, ECM, VCD ]
+
+    vim_name:
+        type: string
+        default: openstack_VIM
+        description: Any name for VIM.
+
+    vim_ip:
+        type: string
+        default: None
+        description: Host IPv4/IPv6 address of VIM identity service. 
+
+    vim_HostName:
+        type: string
+        default: None
+        description: Hostname of VIM identity service.
+
+    vim_url:
+        type: string
+        default: None
+        description: URL of VIM identity service.
+
+    vim_tenant_name:
+        type: string
+        default: None
+        description: VIM Tenant name. 
+
+    vim_tenant_id:
+        type: string
+        default: None
+        description: VIM Tenant ID. 
+
+    vim_tenant_username:
+        type: string
+        default: None
+        description: VIM Tenant User name. 
+
+    vim_tenant_user_password:
+        type: string
+        default: None
+        hidden: true
+        description: VIM Tenant User password.
+
+    vim_subtenant_name:
+        type: string
+        default: None
+        description: VIM Subtenant name. 
+
+    vim_subtenant_id:
+        type: string
+        default: None
+        description: VIM Subtenant ID.
+
+    vim_subtenant_username:
+        type: string
+        default: None
+        description: VIM Subtenant username. 
+
+    vim_subtenant_user_password:
+        type: string
+        default: None
+        hidden: true
+        description: VIM subtenant user password.
+
+    lcm_vim_HostName:
+        type: string
+        default: None
+        description: Host available in url - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_url:
+        type: string
+        default: None
+        description: Identity servcice url of VNF-LCM VIM  - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_ip:
+        type: string
+        default: None
+        description: Host IPv4/IPv6 address of VNF-LCM VIM  - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_tenant_name:
+        type: string
+        default: None
+        description: VIM Tenant Name - VIM details where VNF-LCM itself is deployed.
+ 
+    lcm_vim_tenant_id:
+        type: string
+        default: None
+        description: VNF-LCM VIM Tenant ID  - VIM details where VNF-LCM itself is deployed.
+ 
+    lcm_vim_tenant_username:
+        type: string
+        default: None
+        description: VNF-LCM VIM Tenant User name  - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_tenant_user_password:
+        type: string
+        default: None
+        hidden: true
+        description: VNF-LCM VIM Tenant User password  - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_orch_ip:
+        type: string
+        default: None
+        description: Host IPv4/IPv6 address of Orchestration service - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_orch_url:
+        type: string
+        default: None
+        description: Orchestration service url - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_orch_HostName:
+        type: string
+        default: None
+        description: Host available in Orchestration url - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_subtenant_id:
+        type: string
+        default: None
+        description: VIM Subtenant ID  - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_subtenant_username:
+        type: string
+        default: None
+        description: VIM Subtenant username  - VIM details where VNF-LCM itself is deployed.
+
+    lcm_vim_subtenant_user_password:
+        type: string
+        default: None
+        hidden: true
+        description: VIM subtenant user password - VIM details where VNF-LCM itself is deployed.
+
+    service_registry_datacenter:
+        type: string
+        description: Datacenter for servcice registry.This input need to obtained from ENM SED.
+        default: dc1
+
+    serviceregistry_internal_ip_list:
+        type: comma_delimited_list
+        description: Internal ip addreses list for servcice registry.This input need to obtained from ENM SED.
+        default: None
+
+    service_registry_domain:
+        type: string
+        description:  Domain for service registry.This input need to obtained from ENM SED.
+        default: enm
+
+resources:
+    server_init:
+        type: OS::Heat::MultipartMime
+        properties:
+            parts:
+            - config: {get_resource: services-cloud-init}
+
+    services-cloud-init:
+        type: OS::Heat::CloudConfig
+        properties:
+            cloud_config:
+                ssh_pwauth: True
+                disable_root: false
+                chpasswd:
+                  list: |
+                    cloud-user:cloudUser
+                    expire: false
+                hostname: vnflaf-services
+                timezone: {get_param: time_zone}
+                write_files:
+                -   path: /ericsson/vnflcm/data/host.properties
+                    owner: root:root
+                    permissions: '0777'
+                    content:
+                        str_replace:
+                            template: |
+
+                                #Plan to be executed for configuring the host
+                                configuration_plan=runtime,network,storage,services,security,params,restore
+
+                                # Ethernet interface configuration
+                                ip_version=__IP_VERSION__
+                                vlans=external,internal
+                                external_eth_interface=eth1
+                                internal_eth_interface=eth0
+                                external_subnet_cidr=__EXTERNAL_SUBNET_CIDR__
+                                external_ip_address=__VNFLAF_SERVICES_EXTERNAL_IP__
+                                external_gateway=__EXTERNAL_SUBNET_GATEWAY__
+                                external_subnet_cidr6=__EXTERNAL_SUBNET_CIDR_IPV6__
+                                external_ip_address6=__VNFLAF_SERVICES_EXTERNAL_IPV6__
+                                external_gateway6=__EXTERNAL_SUBNET_GATEWAY_IPV6__
+                                external_mtu=__EXTERNAL_MTU__
+                                internal_subnet_cidr=__INTERNAL_SUBNET_CIDR__
+                                internal_ip_address=__VNFLAF_SERVICES_INTERNAL_IP__
+                                internal_gateway=__INTERNAL_SUBNET_GATEWAY__
+                                internal_subnet_cidr6=__INTERNAL_SUBNET_CIDR_IPV6__
+                                internal_ip_address6=__VNFLAF_SERVICES_INTERNAL_IPV6__
+                                internal_gateway6=__INTERNAL_SUBNET_GATEWAY_IPV6__
+                                internal_mtu=__INTERNAL_MTU__
+                                db_internal_vip=__DB_HA_IPV4_INTERNAL_VIP__
+                                svc_external_vip=__SVC_HA_IPV4_EXTERNAL_VIP__
+                                svc_internal_vip=__SVC_HA_IPV4_INTERNAL_VIP__
+                                db_internal_vip6=__DB_HA_IPV6_INTERNAL_VIP__
+                                svc_external_vip6=__SVC_HA_IPV6_EXTERNAL_VIP__
+                                svc_internal_vip6=__SVC_HA_IPV6_INTERNAL_VIP__
+
+                                # Internal IPs of all services and db VMs
+                                internal_svc_ipv4_list=__VNFLCM_SERVICES_INTERNAL_IPV4_LIST__
+                                internal_svc_ipv6_list=__VNFLCM_SERVICES_INTERNAL_IPV6_LIST__
+                                internal_db_ipv4_list=__VNFLCM_DB_INTERNAL_IPV4_LIST__
+                                internal_db_ipv6_list=__VNFLCM_DB_INTERNAL_IPV6_LIST__
+
+                                # External IPs of all services and db VMs
+                                external_svc_ipv4_list=__VNFLCM_SERVICES_EXTERNAL_IPV4_LIST__
+                                external_svc_ipv6_list=__VNFLCM_SERVICES_EXTERNAL_IPV6_LIST__
+
+                                cluster_index=__CLUSTER_INDEX__
+                                #((cluster_index++))
+                                svc_vm_count=__SERVICES_VM_COUNT__
+                                db_vm_count=__DB_VM_COUNT__
+                                enable_auto_recovery=__ENABLE_AUTO_RECOVERY__
+                                vnflcm_stack_name=__VNFLCM_STACK_NAME__
+                                vnflcm_stack_id=__VNFLCM_STACK_ID__
+
+                                #Storage
+                                storageType=__STORAGE_TYPE__
+
+                                # /etc/hosts entries
+                                host_entries=loopback_ipv__IP_VERSION__,this_host__IP_VERSION__,db_host__IP_VERSION__,db_vip_host,db_vip_host6,oss_host,oss_notification_service_host,this_host2__IP_VERSION__,db_host2__IP_VERSION__
+                                loopback_ipv4="127.0.0.1   localhost httpd-1-instance"
+                                loopback_ipv6="::1   localhost httpd-1-instance"
+                                loopback_ipvdual="::1   localhost httpd-1-instance"
+                                this_host4="__VNFLAF_SERVICES_EXTERNAL_IP__   __DEPLOYMENT_ID__-__SERVICE_HOSTNAME__-${cluster_index}   svc-${cluster_index}-vnflcm   vnflaf-services"
+                                db_host4="__VNFLAF_DB_INTERNAL_IP__   __DEPLOYMENT_ID__-__DB_HOSTNAME__-${cluster_index}   db-${cluster_index}-vnflcm"
+                                db_vip_host="__DB_HA_IPV4_INTERNAL_VIP__   vnflaf-db   postgresql01"
+                                db_vip_host6="__DB_HA_IPV6_INTERNAL_VIP__   vnflaf-db   postgresql01"
+                                this_host6="__VNFLAF_SERVICES_EXTERNAL_IPV6__   __DEPLOYMENT_ID__-__SERVICE_HOSTNAME__-${cluster_index}   svc-${cluster_index}-vnflcm   vnflaf-services"
+                                db_host6="__VNFLAF_DB_INTERNAL_IPV6__   __DEPLOYMENT_ID__-__DB_HOSTNAME__-${cluster_index}   db-${cluster_index}-vnflcm"
+                                this_hostdual="__VNFLAF_SERVICES_EXTERNAL_IP__   __DEPLOYMENT_ID__-__SERVICE_HOSTNAME__-${cluster_index}  svc-${cluster_index}-vnflcm   vnflaf-services"
+                                db_hostdual="__VNFLAF_DB_INTERNAL_IP__   __DEPLOYMENT_ID__-__DB_HOSTNAME__-${cluster_index}   db-${cluster_index}-vnflcm"
+                                this_host2dual="__VNFLAF_SERVICES_EXTERNAL_IPV6__   __DEPLOYMENT_ID__-__SERVICE_HOSTNAME__2   vnflaf-services2"
+                                db_host2dual="__VNFLAF_DB_INTERNAL_IPV6__   __DEPLOYMENT_ID__-__DB_HOSTNAME__2   vnflaf-db2"
+                                oss_host="__OSS_MASTER_HOST_IP__   __OSS_HOST_NAME__   mashost"
+                                oss_notification_service_host="__OSS_NOTIFICATION_SERVICE_IP__   __OSS_NOTIFICATION_SERVICE_HOST_NAME__"
+
+                                #DNS Server
+                                dns_server_ip=__DNS_SERVER__
+
+                                # Hostname
+                                this_hostname=__DEPLOYMENT_ID__-__SERVICE_HOSTNAME__-${cluster_index}
+                                svc_hostname=__DEPLOYMENT_ID__-__SERVICE_HOSTNAME__
+                                db_hostname=__DEPLOYMENT_ID__-__DB_HOSTNAME__
+
+                                #Users
+                                users=cloud-user
+
+                                # build rstate
+                                rstate=R5M03
+
+                                #security plan
+                                security_plan=iptables
+
+                                #Service Groups
+                                service_groups_on_host=vnflcm-services,vnflcm-ui
+
+                                #Services
+                                services=sshd,httpd,modeldeployservice,network,jboss,ntpd,nfs,dns,admin,vmmonitord,vnflcmautorecovery
+                                ntp_servers=__NTP_SERVERS__
+
+                                #Virtual Router ID
+                                svc_external_virtual_router_id=__SVC_EXT_VIRTUAL_ROUTER_ID__
+                                svc_internal_virtual_router_id=__SVC_INT_VIRTUAL_ROUTER_ID__
+                                db_internal_virtual_router_id=__DB_INT_VIRTUAL_ROUTER_ID__
+
+                                #vENM Specific Services
+                                venm_services=dns,consul
+
+                                #Configuration parameters for consul
+                                service_registry_datacenter=__SERVICE_REGISTRY_DATACENTER__
+                                service_registry_domain=__SERVICE_REGISTRY_DOMAIN__
+                                service_registry_internal_ip_list=__SERVICE_REGISTRY_INTERNAL_IP_LIST__
+
+                                #Versions
+                                vnflcm_media_version=5.11.3
+                                vnflcm_services_image_version=5.11.3
+                                vnflcm_db_image_version=4.11.3
+
+                                wfs_db_schema_version=2.0.1
+                                sfwk_db_schema_version=1.0.1
+                                vnflcm_db_schema_version=2.0.22
+
+
+                                # Configuration parameters for Element manager
+                                ossType=__OSS_TYPE__
+                                ossMasterHostName=__OSS_HOST_NAME__
+                                ossMasterHostIP=__OSS_MASTER_HOST_IP__
+                                ossNotificationServiceHost=__OSS_NOTIFICATION_SERVICE_HOST_NAME__
+                                ossNotificationServiceIP=__OSS_NOTIFICATION_SERVICE_IP__
+                                ossHAproxyHost=__OSS_HAPROXY_HOST_NAME__
+                                ossUserName=__OSS_USER_NAME__
+                                ossGatewayHost1=__OSS_GATEWAY_HOST1__
+                                ossGatewayHost2=__OSS_GATEWAY_HOST2__
+
+                                # Configuration parameters for Element manager
+                                vim_type=__VIM_TYPE__
+                                vim_name=__VIM_NAME__
+                                vim_url=__VIM_URL__
+                                vim_ip=__VIM_IP__
+                                vim_HostName=__VIM_HOSTNAME__
+                                vim_tenant_name=__VIM_TENANT_NAME__
+                                vim_tenant_id=__VIM_TENANT_ID__
+                                vim_tenant_username=__VIM_TENANT_USERNAME__
+                                vim_tenant_user_password=__VIM_TENANT_USER_PASSWORD__
+                                vim_subtenant_name=__VIM_SUBTENANT_NAME__
+                                vim_subtenant_id=__VIM_SUBTENANT_ID__
+                                vim_subtenant_username=__VIM_SUBTENANT_USERNAME__
+                                vim_subtenant_user_password=__VIM_SUBTENANT_USER_PASSWORD__
+
+                                # Configuration parameters for Element manager
+                                lcm_vim_url=__LCM_VIM_URL__
+                                lcm_vim_ip=__LCM_VIM_IP__
+                                lcm_vim_HostName=__LCM_VIM_HOSTNAME__
+                                lcm_vim_tenant_name=__LCM_VIM_TENANT_NAME__
+                                lcm_vim_tenant_id=__LCM_VIM_TENANT_ID__
+                                lcm_vim_tenant_username=__LCM_VIM_TENANT_USERNAME__
+                                lcm_vim_tenant_user_password=__LCM_VIM_TENANT_USER_PASSWORD__
+                                lcm_vim_orch_HostName=__LCM_VIM_ORCH_HOSTNAME__
+                                lcm_vim_orch_ip=__LCM_VIM_ORCH_IP__
+                                lcm_vim_orch_url=__LCM_VIM_ORCH_URL__
+                                lcm_vim_subtenant_id=__LCM_VIM_SUBTENANT_ID__
+                                lcm_vim_subtenant_user_password=__LCM_VIM_SUBTENANT_USER_PASSWORD__
+                                lcm_vim_subtenant_username=__LCM_VIM_SUBTENANT_USERNAME__
+
+                            params:
+                                __IP_VERSION__: {get_param: ip_version}
+                                __EXTERNAL_SUBNET_GATEWAY__: {get_param: external_ipv4_subnet_gateway}
+                                __EXTERNAL_SUBNET_CIDR__: {get_param: external_ipv4_subnet_cidr}
+                                __EXTERNAL_SUBNET_GATEWAY_IPV6__: {get_param: external_ipv6_subnet_gateway}
+                                __EXTERNAL_SUBNET_CIDR_IPV6__: {get_param: external_ipv6_subnet_cidr}
+                                __EXTERNAL_MTU__: {get_param: external_mtu}
+                                __INTERNAL_SUBNET_GATEWAY__: {get_param: internal_ipv4_subnet_gateway}
+                                __INTERNAL_SUBNET_CIDR__: {get_param: internal_ipv4_subnet_cidr}
+                                __INTERNAL_SUBNET_GATEWAY_IPV6__: {get_param: internal_ipv6_subnet_gateway}
+                                __INTERNAL_SUBNET_CIDR_IPV6__: {get_param: internal_ipv6_subnet_cidr}
+                                __INTERNAL_MTU__: {get_param: internal_mtu}
+                                __OSS_TYPE__: {get_param: ossType}
+                                __OSS_HOST_NAME__: {get_param: ossMasterServerHostName}
+                                __OSS_MASTER_HOST_IP__: {get_param: ossMasterHostIP}
+                                __OSS_NOTIFICATION_SERVICE_HOST_NAME__: {get_param: ossNotificationServiceHost}
+                                __OSS_NOTIFICATION_SERVICE_IP__: {get_param: ossNotificationServiceIP}
+                                __OSS_HAPROXY_HOST_NAME__: { get_param: ossHAproxyHost }
+                                __OSS_USER_NAME__: {get_param: ossUserName}
+                                __OSS_GATEWAY_HOST1__: {get_param: ossGatewayHost1}
+                                __OSS_GATEWAY_HOST2__: {get_param: ossGatewayHost2}
+                                __STORAGE_TYPE__: {get_param: storageType}
+                                __VNFLAF_SERVICES_EXTERNAL_IP__: {get_param: [external_ipv4_for_services_vm, {get_param: clusterIndex}]}
+                                __VNFLAF_SERVICES_EXTERNAL_IPV6__: {get_param: [external_ipv6_for_services_vm, {get_param: clusterIndex}]}
+                                __VNFLAF_SERVICES_INTERNAL_IP__: { get_param: [internal_ipv4_for_services_vm, {get_param: clusterIndex}]}
+                                __VNFLAF_SERVICES_INTERNAL_IPV6__: { get_param: [internal_ipv6_for_services_vm, {get_param: clusterIndex}] }
+                                __VNFLAF_DB_INTERNAL_IP__: { get_param: [internal_ipv4_for_db_vm, {get_param: clusterIndex}]}
+                                __SVC_HA_IPV4_EXTERNAL_VIP__: { get_param: external_ipv4_vip_for_services }
+                                __SVC_HA_IPV4_INTERNAL_VIP__: { get_param: internal_ipv4_vip_for_services }
+                                __SVC_HA_IPV6_EXTERNAL_VIP__: { get_param: external_ipv6_vip_for_services }
+                                __SVC_HA_IPV6_INTERNAL_VIP__: { get_param: internal_ipv6_vip_for_services }
+                                __DB_HA_IPV4_INTERNAL_VIP__: { get_param: internal_ipv4_vip_for_db }
+                                __DB_HA_IPV6_INTERNAL_VIP__: { get_param: internal_ipv6_vip_for_db }
+                                __VNFLAF_DB_INTERNAL_IPV6__: { get_param: [internal_ipv6_for_db_vm, {get_param: clusterIndex}]}
+                                __VNFLCM_SERVICES_INTERNAL_IPV4_LIST__:
+                                                                list_join: [ ",",{get_param: internal_ipv4_for_services_vm} ]
+                                __VNFLCM_SERVICES_INTERNAL_IPV6_LIST__:
+                                                                list_join: [ ",",{get_param: internal_ipv6_for_services_vm} ]
+                                __VNFLCM_DB_INTERNAL_IPV4_LIST__:
+                                                                list_join: [ ",",{get_param: internal_ipv4_for_db_vm} ]
+                                __VNFLCM_DB_INTERNAL_IPV6_LIST__:
+                                                                list_join: [ ",",{get_param: internal_ipv6_for_db_vm} ]
+                                __VNFLCM_SERVICES_EXTERNAL_IPV4_LIST__:
+                                                                list_join: [ ",",{get_param: external_ipv4_for_services_vm} ]
+                                __VNFLCM_SERVICES_EXTERNAL_IPV6_LIST__:
+                                                                list_join: [ ",",{get_param: external_ipv6_for_services_vm} ]
+                                __SERVICE_HOSTNAME__: {get_param: Services_vm_HostName}
+                                __DB_HOSTNAME__: {get_param: DB_vm_HostName}
+                                __NTP_SERVERS__: { get_param: ntp_servers }
+                                __DNS_SERVER__: { get_param: dns_server_ip }
+                                __CLUSTER_INDEX__: {get_param: clusterIndex}
+                                __ENABLE_AUTO_RECOVERY__: {get_param: enable_auto_recovery}
+                                __VNFLCM_STACK_NAME__: {get_param: vnflcm_stack_name}
+                                __VNFLCM_STACK_ID__ : {get_param: vnflcm_stack_id}
+                                __SERVICES_VM_COUNT__: {get_param: services_vm_count}
+                                __DB_VM_COUNT__: {get_param: db_vm_count}
+                                __DEPLOYMENT_ID__: {get_param: deployment_id}
+                                __DB_INT_VIRTUAL_ROUTER_ID__: {get_param: db_internal_vrrp_id}
+                                __SVC_EXT_VIRTUAL_ROUTER_ID__: {get_param: svc_external_vrrp_id}
+                                __SVC_INT_VIRTUAL_ROUTER_ID__: {get_param: svc_internal_vrrp_id}
+                                __VIM_TYPE__: { get_param: vim_type }
+                                __VIM_NAME__: { get_param: vim_name }
+                                __VIM_URL__: { get_param: vim_url }
+                                __VIM_IP__: { get_param: vim_ip }
+                                __VIM_HOSTNAME__: { get_param: vim_HostName }
+                                __VIM_TENANT_NAME__: { get_param: vim_tenant_name }
+                                __VIM_TENANT_ID__: { get_param: vim_tenant_id }
+                                __VIM_TENANT_USERNAME__: { get_param: vim_tenant_username }
+                                __VIM_TENANT_USER_PASSWORD__: { get_param: vim_tenant_user_password }
+                                __VIM_SUBTENANT_NAME__: { get_param: vim_subtenant_name }
+                                __VIM_SUBTENANT_ID__: { get_param: vim_subtenant_id }
+                                __VIM_SUBTENANT_USERNAME__: { get_param: vim_subtenant_username }
+                                __VIM_SUBTENANT_USER_PASSWORD__: { get_param: vim_subtenant_user_password }
+                                __LCM_VIM_URL__: { get_param: lcm_vim_url }
+                                __LCM_VIM_IP__: { get_param: lcm_vim_ip }
+                                __LCM_VIM_HOSTNAME__: { get_param: lcm_vim_HostName }
+                                __LCM_VIM_TENANT_NAME__: { get_param: lcm_vim_tenant_name }
+                                __LCM_VIM_TENANT_ID__: { get_param: lcm_vim_tenant_id }
+                                __LCM_VIM_TENANT_USERNAME__: { get_param: lcm_vim_tenant_username }
+                                __LCM_VIM_TENANT_USER_PASSWORD__: { get_param: lcm_vim_tenant_user_password }
+                                __LCM_VIM_ORCH_HOSTNAME__: { get_param: lcm_vim_orch_HostName }
+                                __LCM_VIM_ORCH_IP__: { get_param: lcm_vim_orch_ip }
+                                __LCM_VIM_ORCH_URL__: { get_param: lcm_vim_orch_url }
+                                __LCM_VIM_SUBTENANT_ID__: { get_param: lcm_vim_subtenant_id }
+                                __LCM_VIM_SUBTENANT_USERNAME__: { get_param: lcm_vim_subtenant_username }
+                                __LCM_VIM_SUBTENANT_USER_PASSWORD__: { get_param: lcm_vim_subtenant_user_password }
+                                __SERVICE_REGISTRY_DATACENTER__: { get_param: service_registry_datacenter }
+                                __SERVICE_REGISTRY_DOMAIN__: { get_param: service_registry_domain }
+                                __SERVICE_REGISTRY_INTERNAL_IP_LIST__:
+                                                                list_join: [ ",",{get_param: serviceregistry_internal_ip_list} ]
+
+                runcmd:
+                - sed -i '/After/d' /usr/lib/systemd/system/configenv.service
+                - sed -i '/WantedBy/d' /usr/lib/systemd/system/configenv.service
+                - /opt/ericsson/ERICvnflafinst_CXP9032542/bin/configure_host.sh
+                - chkconfig cloud-config off
+                - chkconfig cloud-init off
+                - chkconfig cloud-init-local off
+                - reboot
+
+                bootcmd:
+                - echo "Boot Completed"
+
+
+
+    vnflaf-services:
+        type: OS::Nova::Server
+        properties:
+            name: {list_join: ['-', [ {get_param: deployment_id},{get_param: Services_vm_HostName},{get_param: clusterIndex}]]}
+            image: { get_param: servicesImage}
+            flavor: { get_param: services_flavor }
+            key_name: { get_param: keypair }
+            scheduler_hints:
+              group:
+                get_param: availability
+            metadata:
+                ha-policy: { get_param: ha_policy }
+            config_drive: true
+            user_data_format: RAW
+            user_data:
+                get_resource: server_init
+            networks:
+            - port: { get_resource: vnflaf_services_internal_port }
+            - port: { get_resource: vnflaf_services_external_port }
+
+    vnflaf_services_external_port:
+        type: OS::Neutron::Port
+        properties:
+            network_id: { get_param: external_net_id }
+            fixed_ips:
+            - ip_address: { get_param: [external_ipv4_for_services_vm, {get_param: clusterIndex}]}
+            security_groups: [ get_param: security_group_id ]
+            allowed_address_pairs:
+            - ip_address: 0.0.0.0/0
+            - ip_address: ::/0
+
+
+    vnflaf_services_internal_port:
+        type: OS::Neutron::Port
+        properties:
+            network_id: { get_param: internal_net_id }
+            fixed_ips:
+            - ip_address: { get_param: [internal_ipv4_for_services_vm, {get_param: clusterIndex}]}
+            security_groups: [ get_param: security_group_id ]
+            allowed_address_pairs:
+            - ip_address: 0.0.0.0/0
+            - ip_address: ::/0
+
+outputs:
+    vnflaf_services_internal_ipv4:
+        description: Internal IP address of VNFLAF-Services
+        value: { get_param: [internal_ipv4_for_services_vm, {get_param: clusterIndex}]}
+    vnflaf_services_internal_ipv6:
+        description: Internal IP address of VNFLAF-Services
+        value: { get_param: [internal_ipv6_for_services_vm, {get_param: clusterIndex}]}
+    vnflaf_services_external_ipv4:
+        description: External IP address of VNFLAF-Services
+        value: { get_param: [external_ipv4_for_services_vm, {get_param: clusterIndex}]}
+    vnflaf_services_external_ipv6:
+        description: External IP address of VNFLAF-Services
+        value: { get_param: [external_ipv6_for_services_vm, {get_param: clusterIndex}]}

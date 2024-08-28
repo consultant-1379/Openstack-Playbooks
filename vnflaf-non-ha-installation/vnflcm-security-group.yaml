@@ -1,0 +1,324 @@
+heat_template_version: 2015-04-30
+
+description: >
+  VNF-LCM Heat Template 5.11.3 to create Security Group.
+
+resources:
+    security_group:
+        type: OS::Neutron::SecurityGroup
+        properties:
+          name: {get_param: 'OS::stack_name'}
+          description: Allow Everyone
+          rules:
+           - direction: ingress
+             ethertype: IPv4
+             protocol: icmp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             protocol: icmp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 22
+             port_range_max: 22
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 22
+             port_range_max: 22
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 53
+             port_range_max: 53
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 53
+             port_range_max: 53
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 80
+             port_range_max: 80
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 80
+             port_range_max: 80
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 80
+             port_range_max: 80
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 80
+             port_range_max: 80
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 123
+             port_range_max: 123
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 123
+             port_range_max: 123
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 443
+             port_range_max: 443
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 443
+             port_range_max: 443
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 443
+             port_range_max: 443
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 443
+             port_range_max: 443
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 8080
+             port_range_max: 8080
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 8080
+             port_range_max: 8080
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 8080
+             port_range_max: 8080
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 8080
+             port_range_max: 8080
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 8443
+             port_range_max: 8443
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 8443
+             port_range_max: 8443
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 8443
+             port_range_max: 8443
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 8443
+             port_range_max: 8443
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 2049
+             port_range_max: 2049
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 2049
+             port_range_max: 2049
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 2049
+             port_range_max: 2049
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 2049
+             port_range_max: 2049
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 5432
+             port_range_max: 5432
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 5432
+             port_range_max: 5432
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 5432
+             port_range_max: 5432
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 5432
+             port_range_max: 5432
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 9002
+             port_range_max: 9002
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 9002
+             port_range_max: 9002
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 9002
+             port_range_max: 9002
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 9002
+             port_range_max: 9002
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 9954
+             port_range_max: 9954
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 9954
+             port_range_max: 9954
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 9954
+             port_range_max: 9954
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 9954
+             port_range_max: 9954
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             protocol: 112
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             protocol: 112
+             remote_ip_prefix: ::/0
+           - direction: egress
+             ethertype: IPv4
+             protocol: icmp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: egress
+             ethertype: IPv6
+             protocol: icmp
+             remote_ip_prefix: ::/0
+           - direction: egress
+             ethertype: IPv6
+             port_range_min: 1
+             port_range_max: 65535
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: egress
+             ethertype: IPv4
+             port_range_min: 1
+             port_range_max: 65535
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: egress
+             ethertype: IPv6
+             port_range_min: 1
+             port_range_max: 65535
+             protocol: udp
+             remote_ip_prefix: ::/0
+           - direction: egress
+             ethertype: IPv4
+             port_range_min: 1
+             port_range_max: 65535
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: egress
+             ethertype: IPv4
+             protocol: 112
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: egress
+             ethertype: IPv6
+             protocol: 112
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 12987
+             port_range_max: 12987
+             protocol: tcp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 12987
+             port_range_max: 12987
+             protocol: tcp
+             remote_ip_prefix: ::/0
+           - direction: ingress
+             ethertype: IPv4
+             port_range_min: 12987
+             port_range_max: 12987
+             protocol: udp
+             remote_ip_prefix: 0.0.0.0/0
+           - direction: ingress
+             ethertype: IPv6
+             port_range_min: 12987
+             port_range_max: 12987
+             protocol: udp
+             remote_ip_prefix: ::/0
+outputs:
+    security_group_id:
+        description: Id of created SecurityGroup
+        value: { get_resource: security_group }
